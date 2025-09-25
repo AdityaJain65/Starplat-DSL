@@ -1,0 +1,16 @@
+function BFS(Graph g, node src)
+{
+    propNode<int> dist;
+    g.attachNodeProperty(dist = -1);
+    src.dist = 0;
+    iterateInBFS(v in g.nodes() from src)
+    {
+        forall(w in g.neighbors(v))
+        {
+            if (w.dist == -1)
+            {
+                w.dist = v.dist + 1;
+            }
+        }
+    }
+}

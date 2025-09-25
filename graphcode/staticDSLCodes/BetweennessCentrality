@@ -1,0 +1,29 @@
+function Compute_BC(Graph g, propNode < float > BC, SetN < g > sourceSet) {
+  g.attachNodeProperty(BC = 0);
+  propNode < float > sigma;
+  propNode < float > delta;
+  propNode < int > dist;
+  for (src in sourceSet) {
+    g.attachNodeProperty(delta = 0);
+    g.attachNodeProperty(sigma = 0);
+    g.attachNodeProperty(dist = INF);
+    src.dist=0;
+    src.sigma = 1;
+    iterateInBFS(v in g.nodes() from src) {
+      forall (w in g.neighbors(v)) {
+        if(w.dist==INF)
+        {
+          w.dist=v.dist+1;
+          w.sigma += v.sigma;
+        }
+      }
+    }
+    iterateInReverse(v != src) {
+      forall (w in g.neighbors(v)) {
+        if(dist[v]<dist[w])
+        v.delta = v.delta + (v.sigma / w.sigma) * (1 + w.delta);
+      }
+      v.BC = v.BC + v.delta;
+    }
+  }
+}

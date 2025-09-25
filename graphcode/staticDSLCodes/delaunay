@@ -1,0 +1,293 @@
+function comparePoints(Point p1, Point p2)
+{
+    return p1.x < p2.x;
+}
+
+function findPointBounds(container<Point> points, container<double> bounds)
+{
+    Point p0 = points[0];
+    double xmin = p0.x;
+    double ymin = p0.y;
+    double xmax = xmin;
+    double ymax = ymin;
+    int i = 1;
+    while (i < points.size())
+    {
+        Point pi = points[i];
+        if (pi.x < xmin)
+        {
+            xmin = pi.x;
+        }
+        if (pi.x > xmax)
+        {
+            xmax = pi.x;
+        }
+        if (pi.y < ymin)
+        {
+            ymin = pi.y;
+        }
+        if (pi.y > ymax)
+        {
+            ymax = pi.y;
+        }
+        i++;
+    }
+    bounds[0] = xmin;
+    bounds[1] = ymin;
+    bounds[2] = xmax;
+    bounds[3] = ymax;
+}
+
+function createSuperTriangle(
+    container<Point> points, container<double> bounds)
+{
+    double xmin = bounds[0];
+    double ymin = bounds[1];
+    double xmax = bounds[2];
+    double ymax = bounds[3];
+    double dmax;
+    double dx = xmax - xmin;
+    double dy = ymax - ymin;
+    if (dx > dy)
+    {
+        dmax = dx;
+    }
+    else
+    {
+        dmax = dy;
+    }
+    double xmid = (xmax + xmin) / 2;
+    double ymid = (ymax + ymin) / 2;
+    Point p1;
+    p1.x = xmid - 20 * dmax;
+    p1.y = ymid - dmax;
+    points.push_back(p1);
+    p1.x = xmid;
+    p1.y = ymid + 20 * dmax;
+    points.push_back(p1);
+    p1.x = xmid + 20 * dmax;
+    p1.y = ymid - dmax;
+    points.push_back(p1);
+}
+
+function removeSuperTriangles(
+    container<Triangle> triangles, int nv, container<int> numTriangles)
+{
+    int ntri = numTriangles[0];
+    int i = 0;
+    while (i < ntri)
+    {
+        Triangle t1 = triangles[i];
+        int tp1 = t1.p1;
+        int tp2 = t1.p2;
+        int tp3 = t1.p3;
+
+        if (tp1 >= nv || tp2 >= nv || tp3 >= nv)
+        {
+            triangles[i] = triangles[ntri - 1];
+            ntri--;
+            i--;
+        }
+        i++;
+    }
+    numTriangles[0] = ntri;
+}
+
+function removeDuplicateEdges(
+    container<Edge> edges, int nedge)
+{
+    int j = 0;
+    while (j < nedge - 1)
+    {
+        int k = j + 1;
+        while (k < nedge)
+        {
+            Edge ej = edges[j];
+            Edge ek = edges[k];
+            int pj1 = ej.p1;
+            int pj2 = ej.p2;
+            int pk1 = ek.p1;
+            int pk2 = ek.p2;
+            if ((pj1 == pk2) && (pj2 == pk1))
+            {
+                Edge e1;
+                e1.p1 = -1;
+                e1.p2 = -1;
+                edges[j] = e1;
+                edges[k] = e1;
+            }
+            k++;
+        }
+        j++;
+    }
+}
+
+function createNewTriangles(
+    container<Edge> edges, int nedge, container<Triangle> triangles, container<int> complete, container<int> numTriangles, int i)
+{
+    int ntri = numTriangles[0];
+    int j = 0;
+    while (j < nedge)
+    {
+        Edge ej = edges[j];
+
+        if ((ej.p1 >= 0 && ej.p2 >= 0))
+        {
+            Triangle t1;
+            t1.p1 = ej.p1;
+            t1.p2 = ej.p2;
+            t1.p3 = i;
+            triangles[ntri] = t1;
+            complete[ntri] = false;
+            ntri++;
+        }
+        j++;
+    }
+    numTriangles[0] = ntri;
+}
+
+function circumCircleCheck(double xp, double yp, double x1, double y1, double x2,
+                           double y2, double x3, double y3, container<double> circumResults)
+{
+    double EPSILON = 0.0000000001;
+    double D = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2));
+    if (fabs(D) < EPSILON)
+    {
+        circumResults[0] = 0;
+        circumResults[1] = 0;
+        circumResults[2] = 0;
+        return false;
+    }
+    double D1 = (x1 * x1 + y1 * y1) * (y2 - y3) + (x2 * x2 + y2 * y2) * (y3 - y1) + (x3 * x3 + y3 * y3) * (y1 - y2);
+    double D2 = (x1 * x1 + y1 * y1) * (x3 - x2) + (x2 * x2 + y2 * y2) * (x1 - x3) + (x3 * x3 + y3 * y3) * (x2 - x1);
+    double xc = D1 / D;
+    double yc = D2 / D;
+    double dx = x2 - xc;
+    double dy = y2 - yc;
+    double rsqr = dx * dx + dy * dy;
+    double r = sqrt(rsqr);
+    dx = xp - xc;
+    dy = yp - yc;
+    double drsqr = dx * dx + dy * dy;
+    circumResults[0] = xc;
+    circumResults[1] = yc;
+    circumResults[2] = r;
+    if (drsqr <= rsqr + EPSILON)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+function Triangulate(container<Point> points)
+{
+    double EPSILON = 0.000001;
+    int ntri = 0;
+    int nedge = 0;
+    int nv = points.size();
+    int trimax = 4 * nv;
+    int emax = 200;
+    tsort(points.begin(), points.end(), comparePoints);
+    container<int>(trimax, 0) complete;
+    container<Edge>(emax) edges;
+    container<Point> localPoints;
+    localPoints = points;
+    container<double>(4) bounds;
+    findPointBounds(localPoints, bounds);
+    createSuperTriangle(localPoints, bounds);
+    container<Triangle>(3 * nv) triangles;
+    Triangle tri;
+    tri.p1 = nv;
+    tri.p2 = nv + 1;
+    tri.p3 = nv + 2;
+    triangles[0] = tri;
+    complete[0] = false;
+    ntri = 1;
+    int i = 0;
+    double xp;
+    double yp;
+    double x1;
+    double y1;
+    double x2;
+    double y2;
+    double x3;
+    double y3;
+    double xc;
+    double yc;
+    double r;
+    bool inside;
+    int ind1;
+    container<int>(1) numTriangles;
+    while (i < nv)
+    {
+        Point pi = localPoints[i];
+        xp = pi.x;
+        yp = pi.y;
+        nedge = 0;
+        int j = 0;
+        while (j < ntri)
+        {
+            if (complete[j] == false)
+            {
+                Triangle t1 = triangles[j];
+                ind1 = t1.p1;
+                Point p1 = localPoints[ind1];
+                x1 = p1.x;
+                y1 = p1.y;
+                ind1 = t1.p2;
+                p1 = localPoints[ind1];
+                x2 = p1.x;
+                y2 = p1.y;
+                ind1 = t1.p3;
+                p1 = localPoints[ind1];
+                x3 = p1.x;
+                y3 = p1.y;
+                container<double>(3) circumResults;
+                inside = circumCircleCheck(xp, yp, x1, y1, x2, y2, x3, y3, circumResults);
+                xc = circumResults[0];
+                yc = circumResults[1];
+                r = circumResults[2];
+                if (xc + r + EPSILON < xp)
+                {
+                    complete[j] = true;
+                }
+                if (inside)
+                {
+                    if (nedge + 3 >= emax)
+                    {
+                        emax = emax * 2;
+                        edges.resize(emax);
+                    }
+                    Edge e1;
+                    e1.p1 = t1.p1;
+                    e1.p2 = t1.p2;
+                    edges[nedge] = e1;
+                    e1.p1 = t1.p2;
+                    e1.p2 = t1.p3;
+                    edges[nedge + 1] = e1;
+                    e1.p1 = t1.p3;
+                    e1.p2 = t1.p1;
+                    edges[nedge + 2] = e1;
+                    nedge = nedge + 3;
+                    triangles[j] = triangles[ntri - 1];
+                    complete[j] = complete[ntri - 1];
+                    ntri--;
+                    j--;
+                }
+            }
+            j++;
+        }
+        removeDuplicateEdges(edges, nedge);
+        numTriangles[0] = ntri;
+        createNewTriangles(edges, nedge, triangles, complete, numTriangles, i);
+        ntri = numTriangles[0];
+        i++;
+    }
+    numTriangles[0] = ntri;
+    removeSuperTriangles(triangles, nv, numTriangles);
+    ntri = numTriangles[0];
+    return triangles;
+}

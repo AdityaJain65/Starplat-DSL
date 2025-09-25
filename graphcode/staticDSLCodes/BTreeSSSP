@@ -1,0 +1,31 @@
+function Compute_SSSP (Graph g, propEdge<int> weight, node src)
+{
+       
+     propNode <bool> modified;
+     g.attachNodeProperty(modified = False);
+     src.modified = True;
+    
+     BTree BT;
+     BT.insertNode(src, 0);
+
+     bool finished =False;
+     fixedPoint until (finished:!modified)
+     {
+
+          forall (v in g.nodes())
+          {
+               forall (nbr in g.nodes_to(v).filter(modified == True))
+               {          
+                    edge e = g.get_edge(v, nbr);
+                    int nbr_dist = BT.search(nbr);
+                    int v_dist = BT.search(v);
+                    int alt_dist = nbr_dist + e.weight;
+                    if (v_dist >= 0 && alt_dist >= 0 && v_dist > alt_dist) {
+                         BT.update(v, alt_dist);
+                         v.modified = True;
+                    }
+               }
+          }
+     }
+     BT.printBTree();          
+}

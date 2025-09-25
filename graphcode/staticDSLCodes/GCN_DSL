@@ -1,0 +1,17 @@
+function test(Graph g,container<int> neuronsPerLayer, int totalEpochs, string tetst){
+
+  	
+	GNN gnn ;
+	gnn.init(neuronsPerLayer, "Xaviers","flickr/flickr");
+
+	for(int epochs = 0;epochs<totalEpochs;epochs++){
+
+		gnn.forward("SAGE", "SUM");
+		
+      gnn.backward("GCN", "SUM", epochs);
+	}
+
+  	double loss = gnn.compute_loss();
+  	double accuracy = gnn.compute_accuracy();
+
+}
