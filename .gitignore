@@ -34,3 +34,4 @@ graphcode/generated_omp/*h
 *.o
 **/.DS_Store
 graphcode/sample_graphs/*.DS_Store
+graphcode/graph_tcs/clean-soc-pokec-relationships.txt
